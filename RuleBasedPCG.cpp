@@ -2,6 +2,8 @@
 #include <vector>
 #include <random>   // For random number generation
 #include <chrono>   // For seeding the random number generator
+#include <array>   // Para std::array
+#include <utility> // Para std::pair
 
 // Define Map as a vector of vectors of integers.
 // You can change 'int' to whatever type best represents your cells (e.g., char, bool).
@@ -70,16 +72,71 @@ Map drunkAgent(const Map& currentMap, int W, int H, int J, int I, int roomSizeX,
                int& agentX, int& agentY) {
     Map newMap = currentMap; // The new map is a copy of the current one
 
-    // TODO: IMPLEMENTATION GOES HERE for the Drunk Agent logic.
-    // The agent should move randomly.
-    // You'll need a random number generator.
-    // Consider:
-    // - How the agent moves (possible steps).
-    // - What it does if it encounters a border or an obstacle (if applicable).
-    // - How it modifies the map (e.g., leaving a trail, creating rooms, etc.).
-    // - Use the provided parameters (J, I, roomSizeX, roomSizeY, probabilities)
-    //   to control its behavior.
+std::mt19937 rng(std::chrono::steady_clock::now().time_since_epoch().count());
+    std::uniform_real_distribution<double> probDist(0.0, 1.0);
+    std::uniform_int_distribution<int> dirDist(0, 3); // 0: up, 1: right, 2: down, 3: left
 
+    // Direcciones de movimiento: {dx, dy}
+    std::array<std::pair<int, int>, 4> directions = {
+        std::make_pair(-1, 0), // arriba
+        std::make_pair(0, 1),  // derecha
+        std::make_pair(1, 0),  // abajo
+        std::make_pair(0, -1)  // izquierda
+    };
+
+    double roomProb = probGenerateRoom;
+    double changeDirProb = probChangeDirection;
+
+    for (int j = 0; j < J; ++j) {
+        // Elige dirección inicial aleatoria
+        int dir = dirDist(rng);
+
+        for (int i = 0; i < I; ++i) {
+            // Marca el paso del agente (pasillo)
+            if (agentX >= 0 && agentX < H && agentY >= 0 && agentY < W) {
+                newMap[agentX][agentY] = 1;
+            }
+
+            // ¿Genera habitación?
+            if (probDist(rng) < roomProb) {
+                int startX = std::max(0, agentX - roomSizeY / 2);
+                int endX = std::min(H, agentX + (roomSizeY + 1) / 2);
+                int startY = std::max(0, agentY - roomSizeX / 2);
+                int endY = std::min(W, agentY + (roomSizeX + 1) / 2);
+
+                for (int x = startX; x < endX; ++x) {
+                    for (int y = startY; y < endY; ++y) {
+                        newMap[x][y] = 1;
+                    }
+                }
+
+                roomProb = probGenerateRoom; // Reset
+            } else {
+                roomProb += probIncreaseRoom;
+            }
+
+            // ¿Cambia dirección?
+            if (probDist(rng) < changeDirProb) {
+                dir = dirDist(rng);
+                changeDirProb = probChangeDirection; // Reset
+            } else {
+                changeDirProb += probIncreaseChange;
+            }
+
+            // Movimiento del agente
+            int newX = agentX + directions[dir].first;
+            int newY = agentY + directions[dir].second;
+
+            // Verifica límites
+            if (newX >= 0 && newX < H && newY >= 0 && newY < W) {
+                agentX = newX;
+                agentY = newY;
+            } else {
+                // Si se sale del mapa, cambia de dirección
+                dir = dirDist(rng);
+            }
+        }
+    }
     return newMap;
 }
 
