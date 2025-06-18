@@ -52,6 +52,7 @@ Map cellularAutomata(const Map& currentMap, int W, int H, int R, double U, int I
 
     // Realizar I iteraciones del Automata Celular
     for (int iter = 0; iter < I; ++iter) {
+        Map tempMap = newMap;
         // Recorrer cada celda de la cuadrícula
         for (int x = 0; x < H; ++x) {
             for (int y = 0; y < W; ++y) {
@@ -74,15 +75,15 @@ Map cellularAutomata(const Map& currentMap, int W, int H, int R, double U, int I
 
                 // Aplicar regla del Automata Celular
                 if (count > U * 8) {
-                    newMap[x][y] = 1;
+                    tempMap[x][y] = 1;
                 } else {
-                    newMap[x][y] = 0;
+                    tempMap[x][y] = 0;
                 }
             }
         }
 
         // Actualizar el mapa actual con los cambios realizados en esta iteración
-        currentMap = newMap;
+        newMap = tempMap;
     }
 
     return newMap; // Devolver el mapa después de completar todas las iteraciones
@@ -210,6 +211,7 @@ int main() {
     int ca_W = mapCols;
     int ca_H = mapRows;
     int ca_R = 1;      // Radius of neighbor window
+    int ca_I = 3; //iteraciones 
     double ca_U = 0.5; // Threshold
 
     // Drunk Agent Parameters
@@ -233,7 +235,7 @@ int main() {
         // The order of calls will depend on how you want them to interact.
 
         // Example: First the cellular automata, then the agent
-        myMap = cellularAutomata(myMap, ca_W, ca_H, ca_R, ca_U);
+        myMap = cellularAutomata(myMap, ca_W, ca_H, ca_R, ca_U, ca_I);
         myMap = drunkAgent(myMap, da_W, da_H, da_J, da_I, da_roomSizeX, da_roomSizeY,
                            da_probGenerateRoom, da_probIncreaseRoom,
                            da_probChangeDirection, da_probIncreaseChange,
