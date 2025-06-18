@@ -35,15 +35,57 @@ void printMap(const Map& map) {
  * @param U Threshold to decide if the current cell becomes 1 or 0.
  * @return The map after applying the cellular automata rules.
  */
-Map cellularAutomata(const Map& currentMap, int W, int H, int R, double U) {
-    Map newMap = currentMap; // Initially, the new map is a copy of the current one
+Map cellularAutomata(const Map& currentMap, int W, int H, int R, double U, int I) {
+    Map newMap = currentMap; // La nueva cuadrícula es una copia de la actual
 
-    // TODO: IMPLEMENTATION GOES HERE for the cellular automata logic.
-    // Iterate over each cell and apply the transition rules.
-    // Remember that updates should be based on the 'currentMap' state
-    // and applied to the 'newMap' to avoid race conditions within the same iteration.
+    // Definir las direcciones de los vecinos (movimientos en la cuadrícula)
+    std::array<std::pair<int, int>, 8> neighbors = {
+        std::make_pair(-1, -1), // Arriba izquierda
+        std::make_pair(-1, 0),  // Arriba
+        std::make_pair(-1, 1),  // Arriba derecha
+        std::make_pair(0, -1),   // Izquierda
+        std::make_pair(0, 1),    // Derecha
+        std::make_pair(1, -1),   // Abajo izquierda
+        std::make_pair(1, 0),    // Abajo
+        std::make_pair(1, 1)     // Abajo derecha
+    };
 
-    return newMap;
+    // Realizar I iteraciones del Automata Celular
+    for (int iter = 0; iter < I; ++iter) {
+        // Recorrer cada celda de la cuadrícula
+        for (int x = 0; x < H; ++x) {
+            for (int y = 0; y < W; ++y) {
+                int count = 0; // Contador de vecinos con valor 1
+
+                // Calcular el número de vecinos con valor 1
+                for (const auto& neighbor : neighbors) {
+                    int newX = x + neighbor.first;
+                    int newY = y + neighbor.second;
+
+                    // Verificar límites de la cuadrícula
+                    if (newX >= 0 && newX < H && newY >= 0 && newY < W) {
+                        count += currentMap[newX][newY];
+                    } else {
+                        // Puedes considerar los bordes como 0, 1 o aleatorio
+                        // Aquí estamos considerando los bordes como 1
+                        count += 1;
+                    }
+                }
+
+                // Aplicar regla del Automata Celular
+                if (count > U * 8) {
+                    newMap[x][y] = 1;
+                } else {
+                    newMap[x][y] = 0;
+                }
+            }
+        }
+
+        // Actualizar el mapa actual con los cambios realizados en esta iteración
+        currentMap = newMap;
+    }
+
+    return newMap; // Devolver el mapa después de completar todas las iteraciones
 }
 
 /**
